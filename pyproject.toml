@@ -12,6 +12,7 @@ license-files = ["LICENSE",]
 dependencies = [
     "beautifulsoup4>=4.14.3",
     "curl-cffi>=0.14.0",
+    "tomli>=2.0.0; python_version < '3.11'",
 ]
 keywords = [
   "bandcampsync",
