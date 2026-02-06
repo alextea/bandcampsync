@@ -24,6 +24,8 @@ if __name__ == '__main__':
         help='Path to the cookies file')
     parser.add_argument('-d', '--directory', default='',
         help='Path to the directory to download media to')
+    parser.add_argument('-l', '--library-directory', default='',
+        help='Path to beets-managed library directory to check for existing albums')
     parser.add_argument('-I', '--ignore-file', default='',
         help='Path to the ignore file')
     parser.add_argument('-i', '--ignore', default='',
@@ -58,6 +60,7 @@ if __name__ == '__main__':
     # CLI args override config file values
     cookies_file = args.cookies or config.cookies_file
     directory = args.directory or config.directory
+    library_dir_str = args.library_directory or config.library_directory
     ignore_file = args.ignore_file or config.ignore_file
     ign_patterns = args.ignore or config.ignore_patterns
     media_format = args.format or config.format
@@ -71,12 +74,18 @@ if __name__ == '__main__':
     cookies_path = Path(cookies_file).resolve()
     dir_path = Path(directory).resolve()
     ign_file_path = Path(ignore_file).resolve() if ignore_file else None
+    if library_dir_str:
+        library_dir = Path(library_dir_str).resolve()
+    else:
+        library_dir = None
 
     # Validate
     if not cookies_path.is_file():
         raise ValueError(f'Cookies file does not exist: {cookies_path}')
     if not dir_path.is_dir():
         raise ValueError(f'Directory does not exist: {dir_path}')
+    if library_dir and not library_dir.is_dir():
+        raise ValueError(f'Library directory does not exist: {library_dir}')
     if ign_patterns:
         log.warning(f'BandcampSync is bypassing: {ign_patterns}')
     if temp_dir_str:
@@ -96,5 +105,5 @@ if __name__ == '__main__':
     with open(cookies_path, 'rt') as f:
         cookies = f.read().strip()
     log.info(f'Loaded cookies from "{cookies_path}"')
-    do_sync(cookies, dir_path, media_format, temp_dir, ign_file_path, ign_patterns, notify_url, concurrency, max_retries, retry_wait)
+    do_sync(cookies, dir_path, media_format, temp_dir, ign_file_path, ign_patterns, notify_url, concurrency, max_retries, retry_wait, library_dir)
     log.info(f'Done')

@@ -19,12 +19,16 @@ class LocalMedia:
 
     ITEM_INDEX_FILENAME = "bandcamp_item_id.txt"
 
-    def __init__(self, media_dir):
+    def __init__(self, media_dir, library_dir=None):
         self.media_dir = media_dir
+        self.library_dir = library_dir
         self.media = {}
         self.item_names = set()
         log.info(f"Local media directory: {self.media_dir}")
-        self.index()
+        self._index_directory(self.media_dir)
+        if self.library_dir:
+            log.info(f"Library directory: {self.library_dir}")
+            self._index_directory(self.library_dir)
 
     def _clean_path(self, path_str):
         path_str = str(path_str)
@@ -43,8 +47,10 @@ class LocalMedia:
         format_prefix = format_parts[0]
         return format_prefix if format_prefix else format_str
 
-    def index(self):
-        for child1 in self.media_dir.iterdir():
+    def _index_directory(self, directory):
+        if not directory.is_dir():
+            return
+        for child1 in directory.iterdir():
             if child1.is_dir():
                 for child2 in child1.iterdir():
                     if child2.is_dir():
@@ -56,7 +62,6 @@ class LocalMedia:
                                 log.info(
                                     f"Detected locally downloaded media: {item_id} = {child2}"
                                 )
-        return True
 
     def read_item_id(self, filepath):
         with open(filepath, "rt") as f:

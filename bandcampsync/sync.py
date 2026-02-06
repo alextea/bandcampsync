@@ -35,9 +35,10 @@ class Syncer:
         concurrency=1,
         max_retries=3,
         retry_wait=5,
+        library_dir=None,
     ):
         self.ignores = Ignores(ign_file_path=ign_file_path, ign_patterns=ign_patterns)
-        self.local_media = LocalMedia(media_dir=dir_path)
+        self.local_media = LocalMedia(media_dir=dir_path, library_dir=library_dir)
         self.media_format = media_format
         self.temp_dir_root = temp_dir_root
         self.ign_file_path = ign_file_path

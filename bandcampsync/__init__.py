@@ -16,6 +16,7 @@ def do_sync(
     concurrency=1,
     max_retries=3,
     retry_wait=5,
+    library_dir=None,
 ):
     Syncer(
         cookies,
@@ -28,6 +29,7 @@ def do_sync(
         concurrency,
         max_retries,
         retry_wait,
+        library_dir,
     )
 
     return True

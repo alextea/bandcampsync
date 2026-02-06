@@ -18,6 +18,7 @@ class Config:
     DEFAULTS = {
         "cookies_file": "/config/cookies.txt",
         "directory": "/downloads",
+        "library_directory": "",
         "format": "flac",
         "temp_directory": "",
         "concurrency": 1,
@@ -34,6 +35,7 @@ class Config:
         self,
         cookies_file="/config/cookies.txt",
         directory="/downloads",
+        library_directory="",
         media_format="flac",
         temp_directory="",
         concurrency=1,
@@ -45,6 +47,7 @@ class Config:
     ):
         self.cookies_file = cookies_file
         self.directory = directory
+        self.library_directory = library_directory
         self.format = media_format
         self.temp_directory = temp_directory
         self.concurrency = concurrency
@@ -64,6 +67,7 @@ class Config:
         return cls(
             cookies_file=section.get("cookies_file", cls.DEFAULTS["cookies_file"]),
             directory=section.get("directory", cls.DEFAULTS["directory"]),
+            library_directory=section.get("library_directory", cls.DEFAULTS["library_directory"]),
             media_format=section.get("format", cls.DEFAULTS["format"]),
             temp_directory=section.get("temp_directory", cls.DEFAULTS["temp_directory"]),
             concurrency=section.get("concurrency", cls.DEFAULTS["concurrency"]),
