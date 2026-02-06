@@ -1,0 +1,38 @@
+[bandcampsync]
+
+# Path to the cookies file exported from your browser
+cookies_file = "/config/cookies.txt"
+
+# Directory to download media to
+directory = "/downloads"
+
+# Optional: path to a beets-managed library directory. If set, albums
+# already present in the library will not be re-downloaded.
+# library_directory = "/music"
+
+# Audio format to download. See README for available formats.
+# Options: mp3-v0, mp3-320, flac, aac-hi, aiff-lossless, vorbis, alac, wav
+format = "flac"
+
+# Optional: directory for temporary downloads (uses system temp dir if unset)
+# temp_directory = "/tmp/bandcampsync"
+
+# Number of concurrent downloads
+concurrency = 1
+
+# Maximum number of retry attempts for failed downloads
+max_retries = 3
+
+# Seconds to wait between retries
+retry_wait = 5
+
+# Optional: URL to notify with an HTTP request when new downloads complete
+# notify_url = "http://some.service.local/refresh"
+
+[bandcampsync.ignores]
+
+# Optional: path to an ignore file for tracking downloaded items
+# file = "/config/ignores.txt"
+
+# Optional: space-delimited patterns matching artist names to skip
+# patterns = "badband1 badband2"
