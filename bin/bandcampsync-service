@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from pathlib import Path
 from bandcampsync import version, logger, do_sync
+from bandcampsync.config import Config, DEFAULT_CONFIG_PATH
 
 
 log = logger.get_logger('service')
@@ -26,46 +27,67 @@ class CatchShutdownSignal:
 
 
 if __name__ == '__main__':
+    # Load config file if available
+    config_path = Path(os.getenv('BANDCAMPSYNC_CONFIG', str(DEFAULT_CONFIG_PATH)))
+    if config_path.is_file():
+        log.info(f'Loading config from "{config_path}"')
+        config = Config.from_file(config_path)
+    else:
+        log.info(f'No config file found at "{config_path}", using environment variables')
+        config = Config()
+
+    # Service-specific settings (always from env vars)
     tz_name = os.getenv('TZ', 'UTC')
-    cookies_path_env = os.getenv('COOKIES_FILE', '/config/cookies.txt')
-    ign_file_path_env = os.getenv('IGNORES_FILE', '/config/ignores.txt')
-    dir_path_env = os.getenv('DIRECTORY', '/downloads')
-    media_format_env = os.getenv('FORMAT', 'flac')
-    ign_patterns = os.getenv('IGNORE', '')
     run_daily_at_env = os.getenv('RUN_DAILY_AT', '3')
     exit_after_run_env = os.getenv('EXIT_AFTER_RUN', '0')
+
+    # App settings: env vars override config file values
+    cookies_path_env = os.getenv('COOKIES_FILE', '')
+    ign_file_path_env = os.getenv('IGNORES_FILE', '')
+    dir_path_env = os.getenv('DIRECTORY', '')
+    media_format_env = os.getenv('FORMAT', '')
+    ign_patterns = os.getenv('IGNORE', '') or config.ignore_patterns
     temp_dir_env = os.getenv('TEMP_DIR', '')
     notify_url_env = os.getenv('NOTIFY_URL', '')
-    max_retries_env = os.getenv('MAX_RETRIES', '3')
-    retry_wait_env = os.getenv('RETRY_WAIT', '5')
-    concurrency_env = os.getenv('CONCURRENCY', '1')
+    max_retries_env = os.getenv('MAX_RETRIES', '')
+    retry_wait_env = os.getenv('RETRY_WAIT', '')
+    concurrency_env = os.getenv('CONCURRENCY', '')
+
+    cookies_file = cookies_path_env or config.cookies_file
+    dir_path_str = dir_path_env or config.directory
+    ign_file_path_str = ign_file_path_env or config.ignore_file
+    media_format = media_format_env or config.format
+    temp_dir_str = temp_dir_env or config.temp_directory
+    notify_url_str = notify_url_env or config.notify_url
+
     try:
-        max_retries = int(max_retries_env)
+        max_retries = int(max_retries_env) if max_retries_env else config.max_retries
     except (ValueError, TypeError):
-        max_retries = 3
+        max_retries = config.max_retries
     try:
-        retry_wait = int(retry_wait_env)
+        retry_wait = int(retry_wait_env) if retry_wait_env else config.retry_wait
     except (ValueError, TypeError):
-        retry_wait = 5
+        retry_wait = config.retry_wait
     try:
-        concurrency = int(concurrency_env)
+        concurrency = int(concurrency_env) if concurrency_env else config.concurrency
     except (ValueError, TypeError):
-        concurrency = 1
-    cookies_path = Path(cookies_path_env).resolve()
-    ign_file_path = Path(ign_file_path_env).resolve()
-    dir_path = Path(dir_path_env).resolve()
+        concurrency = config.concurrency
+
+    cookies_path = Path(cookies_file).resolve()
+    ign_file_path = Path(ign_file_path_str).resolve() if ign_file_path_str else None
+    dir_path = Path(dir_path_str).resolve()
     if not cookies_path.is_file():
         raise ValueError(f'Cookies file does not exist: {cookies_path}')
     if not dir_path.is_dir():
         raise ValueError(f'Directory does not exist: {dir_path}')
-    if temp_dir_env:
-        temp_dir = Path(temp_dir_env).resolve()
+    if temp_dir_str:
+        temp_dir = Path(temp_dir_str).resolve()
         if not temp_dir.is_dir():
             raise ValueError(f'Temporary directory does not exist: {temp_dir}')
     else:
         temp_dir = None
-    if notify_url_env:
-        notify_url = notify_url_env.strip()
+    if notify_url_str:
+        notify_url = notify_url_str.strip()
         log.info(f'BandcampSync will notify: {notify_url}')
     else:
         notify_url = None
@@ -95,7 +117,7 @@ if __name__ == '__main__':
     try:
         while not catch_shutdown.shutdown:
             log.info(f'Starting synchronisation')
-            do_sync(cookies, dir_path, media_format_env, temp_dir, ign_file_path, ign_patterns, notify_url, concurrency, max_retries, retry_wait)
+            do_sync(cookies, dir_path, media_format, temp_dir, ign_file_path, ign_patterns, notify_url, concurrency, max_retries, retry_wait)
             random_delay = randrange(0, 3600)
             time_now = datetime.now(tz).replace(microsecond=0)
             time_tomorrow = time_now + timedelta(days=1)
