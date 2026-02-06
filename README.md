@@ -147,6 +147,66 @@ items have been loaded, same as the `--notify-url` CLI argument.
 `CONCURRENCY` can be set to the number of concurrent downloads, defaults to `1`.
 
 
+## Config File
+
+BandcampSync can be configured using a TOML config file as an alternative to
+command line arguments or environment variables. See `config.toml.example` for
+a full example with all available options.
+
+To use a config file with the CLI:
+
+```bash
+$ bandcampsync -C /path/to/config.toml
+```
+
+CLI arguments will override any values set in the config file.
+
+For the Docker service, set the `BANDCAMPSYNC_CONFIG` environment variable to
+the path of your config file (defaults to `/config/config.toml`):
+
+```bash
+$ docker run \
+  -d \
+  --name bandcampsync \
+  -e TZ=Europe/London \
+  -e PUID=1000 \
+  -e PGID=1000 \
+  -e RUN_DAILY_AT=3 \
+  -v /some/directory/bandcampsync-config:/config \
+  -v /some/directory/bandcampsync-media:/downloads \
+  ghcr.io/meeb/bandcampsync:latest
+```
+
+Place your `config.toml` in the config volume alongside `cookies.txt`. If a
+config file is found, settings are loaded from it. Environment variables still
+override config file values for backward compatibility.
+
+
+## Library Directory
+
+If you use a media manager like beets, you can set a separate library directory
+so that BandcampSync checks both your download directory and your library for
+already-imported albums. This prevents re-downloading items that beets has
+already imported and possibly renamed or moved.
+
+In the config file:
+
+```toml
+[bandcampsync]
+directory = "/downloads"
+library_directory = "/music"
+```
+
+Or via CLI:
+
+```bash
+$ bandcampsync -C config.toml -l /path/to/music/library
+```
+
+Downloads will always be saved to the download directory. The library directory
+is only scanned to detect existing albums.
+
+
 ## Configuration
 
 BandcampSync requires minimal configuration. First, it requires your session
