@@ -24,11 +24,12 @@ class LocalMedia:
         self.library_dir = library_dir
         self.media = {}
         self.item_names = set()
+        self.library_albums = set()
         log.info(f"Local media directory: {self.media_dir}")
         self._index_directory(self.media_dir)
         if self.library_dir:
             log.info(f"Library directory: {self.library_dir}")
-            self._index_directory(self.library_dir)
+            self._index_library(self.library_dir)
 
     def _clean_path(self, path_str):
         path_str = str(path_str)
@@ -63,6 +64,18 @@ class LocalMedia:
                                     f"Detected locally downloaded media: {item_id} = {child2}"
                                 )
 
+    def _index_library(self, directory):
+        if not directory.is_dir():
+            return
+        for artist_dir in directory.iterdir():
+            if artist_dir.is_dir():
+                for album_dir in artist_dir.iterdir():
+                    if album_dir.is_dir():
+                        self.library_albums.add(
+                            (artist_dir.name.lower(), album_dir.name.lower())
+                        )
+        log.info(f"Indexed {len(self.library_albums)} albums from library directory")
+
     def read_item_id(self, filepath):
         with open(filepath, "rt") as f:
             item_id = f.read().strip()
@@ -84,6 +97,14 @@ class LocalMedia:
                 f"you may want to check this item is correctly downloaded"
             )
             return True
+        if self.library_albums:
+            library_key = (item.band_name.strip().lower(), item.item_title.strip().lower())
+            if library_key in self.library_albums:
+                log.info(
+                    f'Found in library, skipping: "{item.band_name} / {item.item_title}" '
+                    f"(id:{item.item_id})"
+                )
+                return True
         return False
 
     def get_path_for_purchase(self, item):
