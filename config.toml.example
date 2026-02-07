@@ -6,7 +6,7 @@ cookies_file = "/config/cookies.txt"
 # Directory to download media to
 directory = "/downloads"
 
-# Optional: path to a beets-managed library directory. If set, albums
+# Optional: path to an externally managed library directory. If set, albums
 # already present in the library will not be re-downloaded.
 # library_directory = "/music"
 
